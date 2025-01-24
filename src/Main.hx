@@ -29,16 +29,19 @@ class Main extends hxd.App {
 		sceneHeightTexture.filter = Nearest;
 		sceneHeightTexture.clear(0);
 
+		// renders black outline using the height texture
 		var outline = new OutlineScreenShader();
 		outline.pad = (1 / window.height) * 2;
 		outline.heightTexture = sceneHeightTexture;
 		s2d.filter = new Shader<OutlineScreenShader>(outline);
 
+		// fix texture size when window is resized
 		window.addResizeEvent(() -> {
 			sceneHeightTexture.resize(window.width, window.height);
 			outline.pad = (1 / window.height) * 2;
 		});
 
+		// populate scene
 		makeblock(100, 100, 0);
 		makeblock(200, 100, 0);
 		makeblock(300, 100, 0);
@@ -62,6 +65,10 @@ class Main extends hxd.App {
 		makeblock(450, 75, 2);
 		makeblock(450, 50, 3);
 		makeblock(450, 25, 4);
+
+		makeblock(350, 425, 0);
+		makeblock(350, 400, 1);
+		makeblock(350, 375, 2);
 
 		overlay = new Bitmap(Tile.fromTexture(sceneHeightTexture), s2d);
 	}
