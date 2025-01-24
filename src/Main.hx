@@ -52,6 +52,8 @@ class Main extends hxd.App {
 	}
 
 	override function init() {
+		engine.backgroundColor = 0x206980;
+
 		var window = Window.getInstance();
 
 		// create a new texture to render height data into
@@ -59,9 +61,13 @@ class Main extends hxd.App {
 		sceneHeightTexture.filter = Nearest;
 		sceneHeightTexture.clear(0x000000);
 		screenHeightFilter = new ScreenHeightFilter(sceneHeightTexture);
-		engine.backgroundColor = 0x317B92;
-
 		var s = new FullScreenShader();
+
+		window.addResizeEvent(() -> {
+			sceneHeightTexture.resize(window.width, window.height);
+			s.pad = (1 / window.height) * 2;
+		});
+
 		s.pad = (1 / window.height) * 2;
 		s.heightTexture = sceneHeightTexture;
 		s2d.filter = new Shader<FullScreenShader>(s);
@@ -88,6 +94,7 @@ class Main extends hxd.App {
 	}
 
 	override function update(dt:Float) {
+		sceneHeightTexture.clear(0);
 		// hide overlay so it doesn't render itself
 		overlay.visible = false;
 
