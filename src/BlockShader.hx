@@ -16,14 +16,14 @@ class BlockShader extends Shader {
 		@param var sceneHeightTexture:Sampler2D;
 		@param var enabled:Int = 1; // can't use Bool here for some reason
 		function fragment() {
-			if (enabled == 1) {
-				var screenUv = outputPosition.xy % 1.;
-				var h = sceneHeightTexture.get(screenUv).r;
+			pixelColor.g = 1;
+			pixelColor.a = 1;
+			// var screenUv = outputPosition.xy % 1.;
+			// var h = sceneHeightTexture.get(screenUv).r;
 
-				// Unsure how to actually go about reading from the larger scene height texture
-				// This is currently not outputting the expected color
-				pixelColor = vec4(h, screenUv.y, h, pixelColor.a);
-			}
+			// Unsure how to actually go about reading from the larger scene height texture
+			// This is currently not outputting the expected color
+			// pixelColor = vec4(h, screenUv.y, h, pixelColor.a);
 		}
 	};
 }
