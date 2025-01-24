@@ -1,47 +1,16 @@
-import HeightScreenShader.HeightShader;
 import h2d.Bitmap;
-import h2d.RenderContext;
 import h2d.Tile;
-import h2d.filter.Filter;
 import h2d.filter.Shader;
-import h3d.pass.ScreenFx;
 import hxd.Key;
 import hxd.Window;
 import hxsl.Types.Texture;
 
-class ScreenHeightFilter extends Filter {
-	var shader:HeightScreenShader;
-	var pass:ScreenFx<HeightScreenShader>;
-	var targetTexture:Texture;
-
-	public function new(targetTexture:Texture) {
-		super();
-		useScreenResolution = true;
-		this.targetTexture = targetTexture;
-		targetTexture.filter = Nearest;
-
-		// pass = new ScreenFx(shader);
-	}
-
-	override function draw(ctx:RenderContext, input:Tile):Tile {
-		input.getTexture().filter = Nearest;
-
-		var out = ctx.textures.allocTileTarget("height", input);
-		ctx.engine.pushTarget(out);
-		pass.render();
-		ctx.engine.popTarget();
-
-		return h2d.Tile.fromTexture(out);
-	}
-}
-
 typedef Block = {
-	heightShader:HeightShader,
+	heightShader:BlockHeightShader,
 	bitmap:Bitmap,
 }
 
 class Main extends hxd.App {
-	var screenHeightFilter:ScreenHeightFilter;
 	var sceneHeightTexture:Texture;
 	var overlay:Bitmap;
 	var blocks:Array<Block> = [];
@@ -53,24 +22,22 @@ class Main extends hxd.App {
 
 	override function init() {
 		engine.backgroundColor = 0x206980;
-
 		var window = Window.getInstance();
 
 		// create a new texture to render height data into
 		sceneHeightTexture = new Texture(window.width, window.height, [Target]);
 		sceneHeightTexture.filter = Nearest;
-		sceneHeightTexture.clear(0x000000);
-		screenHeightFilter = new ScreenHeightFilter(sceneHeightTexture);
-		var s = new FullScreenShader();
+		sceneHeightTexture.clear(0);
+
+		var outline = new OutlineScreenShader();
+		outline.pad = (1 / window.height) * 2;
+		outline.heightTexture = sceneHeightTexture;
+		s2d.filter = new Shader<OutlineScreenShader>(outline);
 
 		window.addResizeEvent(() -> {
 			sceneHeightTexture.resize(window.width, window.height);
-			s.pad = (1 / window.height) * 2;
+			outline.pad = (1 / window.height) * 2;
 		});
-
-		s.pad = (1 / window.height) * 2;
-		s.heightTexture = sceneHeightTexture;
-		s2d.filter = new Shader<FullScreenShader>(s);
 
 		makeblock(100, 100, 0);
 		makeblock(200, 100, 0);
@@ -90,6 +57,12 @@ class Main extends hxd.App {
 		makeblock(150, 100, 1);
 		makeblock(150, 75, 2);
 
+		makeblock(450, 125, 0);
+		makeblock(450, 100, 1);
+		makeblock(450, 75, 2);
+		makeblock(450, 50, 3);
+		makeblock(450, 25, 4);
+
 		overlay = new Bitmap(Tile.fromTexture(sceneHeightTexture), s2d);
 	}
 
@@ -97,6 +70,7 @@ class Main extends hxd.App {
 		sceneHeightTexture.clear(0);
 		// hide overlay so it doesn't render itself
 		overlay.visible = false;
+		s2d.filter.enable = false;
 
 		// add height shaders
 		for (b in blocks) {
@@ -104,7 +78,6 @@ class Main extends hxd.App {
 			b.bitmap.addShader(b.heightShader);
 		}
 
-		s2d.filter.enable = false;
 		// render to texture (size of screen)
 		s2d.drawTo(sceneHeightTexture);
 
@@ -131,14 +104,7 @@ class Main extends hxd.App {
 		// bm.addShader(blockShader);
 		// blockShaders.push(blockShader);
 
-		// add the HeightFilter
-		// var filter = new HeightFilter(z);
-		// filter.enable = false;
-		// bm.filter = filter;
-		// heightFilters.push(filter);
-
-		// Note this shader outputs the right info, but is not a ScreenShader so cannot be used in a filter
-		var heightShader = new HeightShader();
+		var heightShader = new BlockHeightShader();
 		heightShader.baseHeight = z;
 		heightShader.heightTexture = hxd.Res.block_height.toTexture();
 		heightShader.heightTexture.filter = Nearest;

@@ -1,6 +1,6 @@
 import h3d.shader.ScreenShader;
 
-class FullScreenShader extends ScreenShader {
+class OutlineScreenShader extends ScreenShader {
 	static var SRC = {
 		@param var texture:Sampler2D;
 		@param var heightTexture:Sampler2D;
