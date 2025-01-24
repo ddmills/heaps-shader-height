@@ -1,5 +1,9 @@
 import hxsl.Shader;
 
+/**
+ * Eventually want to read screenHeightTexture data around current tile so we can draw outlines based on height differences
+ * between neighboring blocks. (like a depth texture)
+ */
 class BlockShader extends Shader {
 	static var SRC = {
 		@input var input:{
@@ -14,9 +18,10 @@ class BlockShader extends Shader {
 		function fragment() {
 			if (enabled == 1) {
 				var screenUv = outputPosition.xy % 1.;
-				var h = sceneHeightTexture.get(screenUv).r; // not outputting expected color
+				var h = sceneHeightTexture.get(screenUv).r;
 
-				// eventually want to read data outside from the screenHeightTexture of the tile x/y so we can draw outlines based on height differences
+				// Unsure how to actually go about reading from the larger scene height texture
+				// This is currently not outputting the expected color
 				pixelColor = vec4(h, screenUv.y, h, pixelColor.a);
 			}
 		}

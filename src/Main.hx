@@ -1,3 +1,4 @@
+import HeightScreenShader.HeightShader;
 import h2d.Bitmap;
 import h2d.RenderContext;
 import h2d.Tile;
@@ -38,6 +39,7 @@ class HeightFilter extends Filter {
 class Main extends hxd.App {
 	var heightFilters:Array<HeightFilter> = [];
 	var blockShaders:Array<BlockShader> = [];
+	var heightShaders:Array<HeightShader> = [];
 	var sceneHeightTexture:Texture;
 	var overlay:Bitmap;
 
@@ -52,7 +54,7 @@ class Main extends hxd.App {
 		// create a new texture to render height data into
 		sceneHeightTexture = new Texture(window.width, window.height, [Target]);
 		sceneHeightTexture.filter = Nearest;
-		sceneHeightTexture.clear(0x440000);
+		sceneHeightTexture.clear(0x000000);
 
 		overlay = new Bitmap(Tile.fromTexture(sceneHeightTexture), s2d);
 
@@ -82,22 +84,33 @@ class Main extends hxd.App {
 			f.enabled = 0;
 		}
 
+		// Enable height shaders (non ScreenShader version)
+		// for (f in heightShaders) {
+		// 	f.enabled = 1;
+		// }
+
+		// hide overlay so it doesn't render itself
 		overlay.visible = false;
 
 		// render to texture (size of screen)
 		s2d.drawTo(sceneHeightTexture);
+
+		// re-enabled all block shaders (This doesn't appear to actually rerender the scene?)
+		for (f in blockShaders) {
+			f.enabled = 1;
+		}
 
 		// disable filters
 		for (f in heightFilters) {
 			f.enable = false;
 		}
 
-		// re-enabled all block shaders?
-		for (f in blockShaders) {
-			f.enabled = 1;
+		// disable all height shaders (non ScreenShader version)
+		for (f in heightShaders) {
+			f.enabled = 0;
 		}
 
-		// toggle showing height texture with SPACE key
+		// toggle showing scene height texture with SPACE key
 		overlay.visible = hxd.Key.isDown(Key.SPACE);
 	}
 
@@ -108,17 +121,26 @@ class Main extends hxd.App {
 		bm.x = x;
 		bm.y = y;
 
-		// want to use scene height texture as input to the block shader
-		var shader = new BlockShader();
-		shader.sceneHeightTexture = sceneHeightTexture;
-		bm.addShader(shader);
-		blockShaders.push(shader);
+		var blockShader = new BlockShader();
+		blockShader.enabled = 0;
+		blockShader.sceneHeightTexture = sceneHeightTexture; // want to use scene height texture as input to the block shader
+		bm.addShader(blockShader);
+		blockShaders.push(blockShader);
 
 		// add the HeightFilter
 		var filter = new HeightFilter(z);
 		filter.enable = false;
 		bm.filter = filter;
 		heightFilters.push(filter);
+
+		// Note this shader outputs the right info, but is not a ScreenShader so cannot be used in a filter
+		var heightShader = new HeightShader();
+		heightShader.baseHeight = z;
+		heightShader.heightTexture = hxd.Res.block_height.toTexture();
+		heightShader.heightTexture.filter = Nearest;
+		heightShader.enabled = 0;
+		bm.addShader(heightShader);
+		heightShaders.push(heightShader);
 
 		return bm;
 	}
