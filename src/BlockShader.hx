@@ -14,7 +14,6 @@ class BlockShader extends Shader {
 		var pixelColor:Vec4;
 		var outputPosition:Vec4;
 		@param var sceneHeightTexture:Sampler2D;
-		@param var enabled:Int = 1; // can't use Bool here for some reason
 		function fragment() {
 			pixelColor.g = 1;
 			pixelColor.a = 1;

@@ -4,6 +4,7 @@ import h2d.filter.Shader;
 import hxd.Key;
 import hxd.Window;
 import hxsl.Types.Texture;
+import hxsl.Types.Vec;
 
 typedef Block = {
 	heightShader:BlockHeightShader,
@@ -21,6 +22,8 @@ class Main extends hxd.App {
 	}
 
 	override function init() {
+		s2d.renderer.globals.set("renderHeight", false);
+
 		engine.backgroundColor = 0x206980;
 		var window = Window.getInstance();
 
@@ -31,14 +34,17 @@ class Main extends hxd.App {
 
 		// renders black outline using the height texture
 		var outline = new OutlineScreenShader();
-		outline.pad = (1 / window.height) * 2;
+
+		var pad = 2;
+
+		outline.pad = new Vec((1 / window.width) * pad, (1 / window.height) * pad);
 		outline.heightTexture = sceneHeightTexture;
 		s2d.filter = new Shader<OutlineScreenShader>(outline);
 
 		// fix texture size when window is resized
 		window.addResizeEvent(() -> {
 			sceneHeightTexture.resize(window.width, window.height);
-			outline.pad = (1 / window.height) * 2;
+			outline.pad = new Vec((1 / window.width) * pad, (1 / window.height) * pad);
 		});
 
 		// populate scene
@@ -79,19 +85,10 @@ class Main extends hxd.App {
 		overlay.visible = false;
 		s2d.filter.enable = false;
 
-		// add height shaders
-		for (b in blocks) {
-			// f.enabled = 0;
-			b.bitmap.addShader(b.heightShader);
-		}
-
 		// render to texture (size of screen)
+		s2d.renderer.globals.set("renderHeight", 1);
 		s2d.drawTo(sceneHeightTexture);
-
-		// remove height shaders
-		for (b in blocks) {
-			b.bitmap.removeShader(b.heightShader);
-		}
+		s2d.renderer.globals.set("renderHeight", 0);
 
 		// toggle showing scene height texture with SPACE key
 		overlay.visible = hxd.Key.isDown(Key.SPACE);
@@ -115,6 +112,8 @@ class Main extends hxd.App {
 		heightShader.baseHeight = z;
 		heightShader.heightTexture = hxd.Res.block_height.toTexture();
 		heightShader.heightTexture.filter = Nearest;
+		heightShader.setPriority(50);
+		bm.addShader(heightShader);
 
 		var block = {
 			heightShader: heightShader,
